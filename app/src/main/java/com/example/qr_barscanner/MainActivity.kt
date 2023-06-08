@@ -2,20 +2,21 @@ package com.example.qr_barscanner
 
 import android.content.Intent
 import android.graphics.Bitmap
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Button
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.example.qr_barscanner.databinding.ActivityMainBinding
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
-import java.lang.Exception
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.firestore.FirebaseFirestore
+import java.net.URL
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -65,30 +66,31 @@ class MainActivity : AppCompatActivity() {
 
             val url = detectImage()
 
-            if (url != null) {
-                // Save the decoded value to Firestore
-                saveToFirestore(url)
-            } else {
-                // Handle the case when QR code scanning failed or no value was decoded
-                Toast.makeText(this@MainActivity, "Failed to scan QR code", Toast.LENGTH_SHORT).show()
-            }
+            saveToFirestore(url.toString())
         }
 
     }
 
-    private fun saveToFirestore(url: Unit): Any {
-        val qrCodeData: MutableMap<String, Any> = HashMap()
-        qrCodeData["value"] = url
+    private fun saveToFirestore(url: String): Any {
+//        val url: MutableMap<String, Any> = HashMap()
+//        url["value"] = url.toString()
+
+//        val data: MutableMap<String, Any> = HashMap()
+//        data["url"] = "your string value"
+
+        val map =  mapOf("key" to url)
+
+
 
         db.collection("User").document(url.toString())
-            .set(qrCodeData)
+            .set(map)
             .addOnSuccessListener {
                 Toast.makeText(this@MainActivity, "QR code data saved to Firestore", Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { e ->
                 Toast.makeText(this@MainActivity, "Failed to save QR code data", Toast.LENGTH_SHORT).show()
             }
-        return url
+        return url.toString()
     }
 
     private fun detectImage() {
@@ -158,10 +160,11 @@ class MainActivity : AppCompatActivity() {
         try {
 
             startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+            val url = URL(url.toString())
 
         }
         catch (e:Exception){
-
+            e.printStackTrace()
         }
 
     }
